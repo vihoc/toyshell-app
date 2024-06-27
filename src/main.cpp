@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
+#include <sstream>
 bool is_exit(std::string& input){
   if(0 == input.find("exit"))
   {
@@ -17,6 +19,50 @@ void handle_echo(std::string& input){
   {
     std::cout << std::endl;
   }
+}
+//input is sub string of the input, with out the command(type and space)
+bool handlepath(std::string& input)
+{
+  /*
+  std::string path = std::getenv("PATH");
+  std::vector<std::string> paths;
+  std::string delimiter = ":";
+  size_t pos = 0;
+  std::string token;
+  while ((pos = path.find(delimiter)) != std::string::npos) {
+    token = path.substr(0, pos);
+    paths.push_back(token);
+    path.erase(0, pos + delimiter.length());
+  }
+  paths.push_back(path);
+  for (std::string& p : paths)
+  {
+    std::string fullpath = p + "/" + input;
+    if(std::filesystem::exists(fullpath))
+    {
+      std::cout << fullpath << std::endl;
+      return;
+    }
+  }
+*/
+  std::string path = std::getenv("PATH");
+  std::stringstream ss(path);
+  std::vector<std::string> paths;
+  std::string token;
+  while(std::getline(ss, token, ':'))
+  {
+    paths.emplace_back(token);
+  }
+  for(std::string& p : paths)
+  {
+    std::string fullpath = p + "/" + input;
+    if(std::filesystem::exists(fullpath))
+    {
+      std::cout <<  input << " is " << fullpath << std::endl;
+      return true;
+    }
+  }
+  return false;
 }
 
 void handle_type(std::string& input)
@@ -37,6 +83,10 @@ void handle_type(std::string& input)
       std::cout << sub << " is a shell builtin" << std::endl;
       return;
     }
+  }
+  if(handlepath(sub))
+  {
+    return;
   }
   std::cout << sub << ": not found" << std::endl;
 
