@@ -15,7 +15,13 @@ int main() {
       break;
     }
     else{
-      std::cout << input << ": " << "command not found" << std::endl;
+      if(0 == input.find("echo "))
+      {
+          std::cout << input.substr(5) << std::endl;
+      }
+      else{
+        std::cout << input << ": " << "command not found" << std::endl;
+      }
     }
   }
 }
