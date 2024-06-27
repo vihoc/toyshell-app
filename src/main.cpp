@@ -83,8 +83,18 @@ bool handlepath(std::string& input)
 
 bool try_runcommand(std::string& input)
 {
+  if(0 == input.length()) 
+  {
+    std::cout << "empty command" << std::endl;
+    return true;
+  }
   std::string command = input.substr(0, input.find(' ' ));
   std::string argc;
+  if(0 == command.length())
+  {
+    std::cout << "empty command" << std::endl;
+    return true;
+  }
   if(command.length() != input.length())
   {
     argc =  input.substr(input.find(' ') + 1);
@@ -139,7 +149,7 @@ bool handbuildin(std::string& input)
   }
   else if(0 == input.find("pwd"))
   {
-    std::cout << std::filesystem::current_path() << std::endl;
+    std::cout << std::filesystem::current_path().c_str() << std::endl;
     return true;
   }
   return false;
