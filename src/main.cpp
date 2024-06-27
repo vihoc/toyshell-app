@@ -3,6 +3,7 @@
 #include <vector>
 #include <filesystem>
 #include <sstream>
+ static const std::vector<std::string> shellbuildin = {"echo", "type", "exit", "pwd"};
 bool is_exit(std::string& input){
   if(0 == input.find("exit"))
   {
@@ -101,14 +102,13 @@ bool try_runcommand(std::string& input)
 
 void handle_type(std::string& input)
 { 
-  std::vector<std::string> shellbuildin = {"echo", "type", "exit"};
-  if(input.length() < 5)
+  if(input.length() < 5) //cut the type and command
   {
     std::cout << "type: " << "missing argument" << std::endl;
     return;
   }
   std::string sub = input.substr(5);
-  for (std::string& command : shellbuildin)
+  for (const std::string& command : shellbuildin)
   {
     
     if(0 == sub.find(command))
@@ -124,7 +124,9 @@ void handle_type(std::string& input)
   }
   std::cout << sub << ": not found" << std::endl;
 }
-bool is_handled(std::string& input){
+
+bool handbuildin(std::string& input)
+{
   if(0 == input.find("echo"))
   {
     handle_echo(input);
@@ -133,6 +135,19 @@ bool is_handled(std::string& input){
   else if(0 == input.find("type"))
   {
     handle_type(input);
+    return true;
+  }
+  else if(0 == input.find("pwd"))
+  {
+    std::cout << std::filesystem::current_path() << std::endl;
+    return true;
+  }
+  return false;
+}
+
+bool is_handled(std::string& input){
+  if(handbuildin(input))
+  {
     return true;
   }
   else if (try_runcommand(input))
