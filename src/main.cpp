@@ -3,7 +3,7 @@
 #include <vector>
 #include <filesystem>
 #include <sstream>
- static const std::vector<std::string> shellbuildin = {"echo", "type", "exit", "pwd"};
+ static const std::vector<std::string> shellbuildin = {"echo", "type", "exit", "pwd", "cd"};
 bool is_exit(std::string& input){
   if(0 == input.find("exit"))
   {
@@ -134,6 +134,25 @@ void handle_type(std::string& input)
   }
   std::cout << sub << ": not found" << std::endl;
 }
+ bool handlecd(std::string& input)
+ {
+    std::string arg = input.substr(3, input.length());
+    if(std::string::npos != arg.find(' '))
+    {
+      std::cout << "cd : missing argument" << std::endl;
+      return true;
+    }
+    if(std::filesystem::exists(arg))
+    {
+      std::filesystem::current_path(arg);
+    }
+    else
+    {
+      std::cout << "cd: "<< arg << ": " <<  "No such file or directory" << std::endl;
+    }
+    return true;
+    
+ }
 
 bool handbuildin(std::string& input)
 {
@@ -150,6 +169,11 @@ bool handbuildin(std::string& input)
   else if(0 == input.find("pwd"))
   {
     std::cout << std::filesystem::current_path().c_str() << std::endl;
+    return true;
+  }
+  else if(0 == input.find("cd"))
+  {
+    handlecd(input);
     return true;
   }
   return false;
