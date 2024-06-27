@@ -20,8 +20,8 @@ void handle_echo(std::string& input){
     std::cout << std::endl;
   }
 }
-//input is sub string of the input, with out the command(type and space)
-bool handlepath(std::string& input)
+
+void nop()
 {
   /*
   std::string path = std::getenv("PATH");
@@ -44,7 +44,11 @@ bool handlepath(std::string& input)
       return;
     }
   }
-*/
+*/  
+}
+//input is sub string of the input, with out the command(type and space)
+std::string getfilePath(std::string& input)
+{
   std::string path = std::getenv("PATH");
   std::stringstream ss(path);
   std::vector<std::string> paths;
@@ -58,15 +62,45 @@ bool handlepath(std::string& input)
     std::string fullpath = p + "/" + input;
     if(std::filesystem::exists(fullpath))
     {
-      std::cout <<  input << " is " << fullpath << std::endl;
-      return true;
+      return std::move(fullpath);
     }
+  }
+  return std::move(std::string(""));
+
+}
+//input is sub string of the input, with out the command(type and space)
+bool handlepath(std::string& input)
+{
+  std::string path = getfilePath(input);
+  if(path.length() > 0)
+  {
+    std::cout << input << " is " << path << std::endl;
+    return true;
+  }
+  return false;
+}
+
+bool try_runcommand(std::string& input)
+{
+  std::string command = input.substr(0, input.find(' ' ));
+  std::string argc;
+  if(command.length() != input.length())
+  {
+    argc =  input.substr(input.find(' ') + 1);
+  }
+  std::string path = getfilePath(command);
+  
+  if(path.length() > 0)
+  {
+    std::string executestring = path + " " + argc;
+    system(executestring.c_str());
+    return true;
   }
   return false;
 }
 
 void handle_type(std::string& input)
-{
+{ 
   std::vector<std::string> shellbuildin = {"echo", "type", "exit"};
   if(input.length() < 5)
   {
@@ -89,8 +123,6 @@ void handle_type(std::string& input)
     return;
   }
   std::cout << sub << ": not found" << std::endl;
-
-
 }
 bool is_handled(std::string& input){
   if(0 == input.find("echo"))
@@ -103,24 +135,36 @@ bool is_handled(std::string& input){
     handle_type(input);
     return true;
   }
-  else return false;
+  else if (try_runcommand(input))
+  {
+    return true;
+  }
+  else 
+  {
+    return false;
+  }
 }
+
+
+
 
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
+  std::string input;
+  
+ 
   while(true){
-
     std::cout << "$ ";
-
-    std::string input;
     std::getline(std::cin, input);
     if(is_exit(input))
     {
       break;
     }
     else{
+       try
+      {
       if(is_handled(input))
       {
         ;
@@ -128,6 +172,11 @@ int main() {
       else{
         std::cout << input << ": " << "command not found" << std::endl;
       }
+       }catch(std::exception& e)
+        {
+         printf("%s", e.what());
+        }
     }
   }
+
 }
