@@ -4,6 +4,20 @@
 #include <filesystem>
 #include <sstream>
  static const std::vector<std::string> shellbuildin = {"echo", "type", "exit", "pwd", "cd"};
+
+std::vector<std::string> parsertoken(std::string& input, const char& delimiter = ' ')
+{
+  std::vector<std::string> tokens;
+  std::stringstream ss(input);
+  std::string token;
+  while(getline(ss, token, delimiter))
+  {
+    tokens.emplace_back(token);
+  }
+  return std::move(tokens);
+}
+
+
 bool is_exit(std::string& input){
   if(0 == input.find("exit"))
   {
@@ -142,7 +156,36 @@ void handle_type(std::string& input)
       std::cout << "cd : missing argument" << std::endl;
       return true;
     }
-    if(std::filesystem::exists(arg))
+    if(0 == arg.find('.'))
+    {
+      //get the token;
+      if(1 == arg.length())
+      {
+        return true;
+      }
+      std::vector<std::string> tokens = parsertoken(arg, '/');
+      auto current_path = std::filesystem::current_path();
+      for(std::string& token : tokens)
+      {
+        if(".." == token)
+        {
+          current_path = current_path.parent_path();
+          std::filesystem::current_path(current_path);
+        }
+        else if("." == token)
+        {
+          continue;
+        }
+        else
+        {
+          current_path = current_path / token;
+          std::filesystem::current_path(current_path);
+        }
+      }
+      return true;
+    }
+    //hand with the case of cd with abusolute path
+    else if(std::filesystem::exists(arg))
     {
       std::filesystem::current_path(arg);
     }
