@@ -176,6 +176,10 @@ void handle_type(std::string& input)
         {
           continue;
         }
+        if("~" == token)
+        {
+          std::filesystem::current_path(std::getenv("HOME"));
+        }
         else
         {
           current_path = current_path / token;
