@@ -148,22 +148,10 @@ void handle_type(std::string& input)
   }
   std::cout << sub << ": not found" << std::endl;
 }
- bool handlecd(std::string& input)
- {
-    std::string arg = input.substr(3, input.length());
-    if(std::string::npos != arg.find(' '))
-    {
-      std::cout << "cd : missing argument" << std::endl;
-      return true;
-    }
-    if(0 == arg.find('.'))
-    {
-      //get the token;
-      if(1 == arg.length())
-      {
-        return true;
-      }
-      std::vector<std::string> tokens = parsertoken(arg, '/');
+
+void handledir(std::string& input, const char& delimiter = ' ')
+{
+        std::vector<std::string> tokens = parsertoken(input, delimiter);
       auto current_path = std::filesystem::current_path();
       for(std::string& token : tokens)
       {
@@ -176,16 +164,40 @@ void handle_type(std::string& input)
         {
           continue;
         }
-        if("~" == token)
-        {
-          std::filesystem::current_path(std::getenv("HOME"));
-        }
         else
         {
           current_path = current_path / token;
           std::filesystem::current_path(current_path);
         }
       }
+}
+
+ bool handlecd(std::string& input)
+ {
+    std::string arg = input.substr(3, input.length());
+    if(std::string::npos != arg.find(' '))
+    {
+      std::cout << "cd : missing argument" << std::endl;
+      return true;
+    }
+    if(0 == arg.find('~'))
+    {
+      std::filesystem::current_path(std::getenv("HOME"));
+      if (1 != arg.length())
+      {
+        std::string sub = arg.substr(1);
+        handledir(sub, '/');
+      }
+      return true;
+    }
+    if(0 == arg.find('.'))
+    {
+      //get the token;
+      if(1 == arg.length())
+      {
+        return true;
+      }
+      handledir(arg, '/');
       return true;
     }
     //hand with the case of cd with abusolute path
